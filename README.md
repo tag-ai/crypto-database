@@ -1,4 +1,4 @@
-# Crypto-twitter mongodb daily update
+# Crypto-twitter MongoDB Daily Update
 
 *Only compatible with python 3*
 
