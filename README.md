@@ -3,7 +3,11 @@
 *Only compatible with python 3*
 
 ## Overview
+See blog post for more information: 
+
 The twitter search API is used to pull tweets about a range of cryptocurrencies, e.g. $BTC or $ETH. The `twitter-search.py/twitter_search.py` script updates a mongodb database with the most recent tweets. Intended to be run daily.
+
+![Crypto Twitter Project Graph](https://raw.githubusercontent.com/tag-ai/crypto-database/master/img/graphs/Crypto%20Twitter%20Data.png)
 
 ## Installation instructions   
 
