@@ -1,3 +1,13 @@
+"""
+emailer.py
+
+Class / helper function for sending emails. Use global variable
+SENDER_EMAIL_CREDENTIALS to specify email credentials file. This should be
+plain text with email on first line and password on second.
+
+Author: Alex Galea
+
+"""
 import os
 import shutil
 import smtplib
