@@ -164,3 +164,5 @@ crontab -e
 
 ```
 
+## License
+MIT license.
