@@ -30,7 +30,7 @@ def update_filestore(df, data_path):
     # Save top coins
     f_name = os.path.join(
         _out_path,
-        'coin-master-list',
+        'coin-twitter-list',
         'historical',
         '{}_top_coins.csv'.format(DATE_STR))
     f_path = os.path.split(f_name)[0]
@@ -41,7 +41,7 @@ def update_filestore(df, data_path):
     # Update master list with top coins
     f_name = os.path.join(
         _out_path,
-        'coin-master-list',
+        'coin-twitter-list',
         'coin_master_list.csv')
     if os.path.exists(f_name):
         print('Master list found at {}, updating'.format(f_name))
@@ -64,7 +64,7 @@ def update_filestore(df, data_path):
     # Save master list to historical
     f_name = os.path.join(
         _out_path,
-        'coin-master-list',
+        'coin-twitter-list',
         'historical',
         '{}_coin_master_list.csv'.format(DATE_STR))
     f_path = os.path.split(f_name)[0]
@@ -75,7 +75,7 @@ def update_filestore(df, data_path):
     # Make copy of master list in DATA_PATH dir (needed by twitter-search)
     f_name = os.path.join(
         DATA_PATH,
-        'coin-master-list',
+        'coin-twitter-list',
         'coin_master_list.csv')
     f_path = os.path.split(f_name)[0]
     if not os.path.exists(f_path):
