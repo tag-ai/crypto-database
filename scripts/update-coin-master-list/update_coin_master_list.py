@@ -17,7 +17,7 @@ import datetime
 DATA_PATH = '../../data/' # WARNING: do not change this variable - will break twitter-search
 DATE = datetime.datetime.now()
 DATE_STR = datetime.datetime.now().strftime('%Y-%m-%d')
-NUM_TOP_COINS = 500
+NUM_TOP_COINS = 100
 
 # Convert to absolute file paths
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -44,16 +44,21 @@ def update_filestore(df, data_path):
         'coin-master-list',
         'coin_master_list.csv')
     if os.path.exists(f_name):
+        print('Master list found at {}, updating'.format(f_name))
         # Load the old list
         df_prev = pd.read_csv(f_name)
+        df_prev['rank'] = float('nan')  # we'll update this
         # Merge in new data
         df_concat = pd.concat((df[df['rank'] <= NUM_TOP_COINS], df_prev))
-        mask_drop_dups = ~(df_concat[['symbol', 'name']].duplicated())
-        df_concat[mask_drop_dups]\
-            .sort_values('rank')\
-            .to_csv(f_name, index=False)
+        mask_drop_dups = ~(df_concat[['symbol', 'name']].duplicated()) # important to do this
+                                                                       # before sorting, so we
+                                                                       # drop from df_prev
+        df_concat = df_concat[mask_drop_dups].sort_values('rank')
     else:
+        print('No master list found at {}, writing new one'.format(f_name))
         df_concat = df[df['rank'] <= NUM_TOP_COINS].sort_values('rank')
+
+    # Save master list
     df_concat.to_csv(f_name, index=False)
 
     # Save master list to historical
