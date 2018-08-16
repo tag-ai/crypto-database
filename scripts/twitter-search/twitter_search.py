@@ -18,40 +18,34 @@ from tqdm import tqdm
 import json
 import pandas as pd
 import json
-import click
 import datetime
 import time
 import os
+import shutil
 import sys
 sys.path.append('../utils')
 from data_writer import DataWriter
 from emailer import send_email
+from config import load_config
+SCRIPT_NAME = 'twitter'
 DATE = datetime.datetime.utcnow()
-DATE_STR = datetime.datetime.utcnow().strftime('%Y-%m-%d')
+DATE_STR = DATE.strftime('%Y-%m-%d')
 TWITTER_DATE_FORMAT = '%a %b %d %H:%M:%S +0000 %Y'
-API_KEY_FILE = '../../twitter-account/api_token.json'
-PREV_ID_FILE_PATH = '../../data/tweets/last_coin_ids.json'
-JSON_FILE_PATH = '../../data/tweets/'   # <- should configure mongodb filestore here
-MONGO_DB_HOST = '127.0.0.1'
-MONGO_DB_PORT = 27017
-MONGO_DB_NAME = 'twitter'
-MONGO_DB_COLLECTION = 'crypto'
+config = load_config(var_type='globals', script=SCRIPT_NAME)
 
 # Convert to absolute file paths
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-API_KEY_FILE = API_KEY_FILE if os.path.isabs(API_KEY_FILE)\
-                    else os.path.join(DIR_PATH, API_KEY_FILE)
-PREV_ID_FILE_PATH = PREV_ID_FILE_PATH if os.path.isabs(PREV_ID_FILE_PATH)\
-                    else os.path.join(DIR_PATH, PREV_ID_FILE_PATH)
-JSON_FILE_PATH = JSON_FILE_PATH if os.path.isabs(JSON_FILE_PATH)\
-                    else os.path.join(DIR_PATH, JSON_FILE_PATH) 
+def absolute_path(path) -> str:
+    return path if os.path.isabs(path) else os.path.join(DIR_PATH, path)
+config['DATA_PATH'] = absolute_path(config['DATA_PATH'])
+config['API_KEY_FILE'] = absolute_path(config['API_KEY_FILE'])
 
 
 def load_api():
     """
     Authorize the user and load the twitter API
     """
-    with open(API_KEY_FILE, 'r') as f:
+    with open(config['API_KEY_FILE'], 'r') as f:
         s = json.load(f)
 
     consumer_key = s['consumer_key']
@@ -83,10 +77,15 @@ def get_since_id(term):
     """
     Read the previous tweet ID from a csv file.
     """
-    if not os.path.exists(PREV_ID_FILE_PATH):
+    prev_id_path = os.path.join(config['DATA_PATH'], 'tweets')
+    if not os.path.exists(prev_id_path):
+        os.makedirs(prev_id_path)
+    prev_id_file_path = os.path.join(prev_id_path, 'last_coin_ids.json')
+
+    if not os.path.isfile(prev_id_file_path):
         since_id = str(0)
     else:
-        with open(PREV_ID_FILE_PATH, 'r') as f:
+        with open(prev_id_file_path, 'r') as f:
             # Load the starting ID (the last one we saved)
             # If not found, then set max_id = 0 to search
             # from first ID
@@ -99,19 +98,24 @@ def dump_since_ids(since_ids):
     """
     Read the previous tweet ID from a csv file.
     """
-    if os.path.exists(PREV_ID_FILE_PATH):
-        with open(PREV_ID_FILE_PATH, 'r') as f:
+    prev_id_path = os.path.join(config['DATA_PATH'], 'tweets')
+    if not os.path.exists(prev_id_path):
+        os.makedirs(prev_id_path)
+    prev_id_file_path = os.path.join(prev_id_path, 'last_coin_ids.json')
+
+    if os.path.exists(prev_id_file_path):
+        with open(prev_id_file_path, 'r') as f:
             # Load the previous IDs
             data = json.load(f)
     else:
         data = {}
     for term, _id in since_ids.items():
         data[term] = _id
-    f_path = os.path.split(PREV_ID_FILE_PATH)[0]
+    f_path = os.path.split(prev_id_file_path)[0]
     if f_path:
         if not os.path.exists(f_path):
             os.makedirs(f_path)
-    with open(PREV_ID_FILE_PATH, 'w') as f:
+    with open(prev_id_file_path, 'w') as f:
         # Write the updated data
         json.dump(data, f)
     print('Dumped new prev IDs:')
@@ -125,6 +129,10 @@ def term_to_filepath(term):
 
 
 def read_search_terms(search_terms_file, search_terms_col):
+    search_terms_file = os.path.join(config['DATA_PATH'], search_terms_file)
+    if not os.path.exists(search_terms_file):
+        raise ValueError('Missing search terms file, expected at file path: {}'.format(search_terms_file))
+
     try:
         df = pd.read_csv(search_terms_file)
     except Exception as e:
@@ -204,7 +212,7 @@ def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
         raise ValueError('Please specify local_filestore in tweet_search function')
     if not dw:
         # Connect to database
-        dw = DataWriter(MONGO_DB_HOST, MONGO_DB_PORT)
+        dw = DataWriter(config['MONGO_DB_HOST'], config['MONGO_DB_PORT'])
 
     # Set date to start search (will search backwards from this point)
     if not until_date:
@@ -280,7 +288,7 @@ def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
             # Extend list to be saved
             searched_tweets.extend(new_tweets_json)
             if len(searched_tweets) > save_freq:
-                dw.write(searched_tweets, MONGO_DB_NAME, MONGO_DB_COLLECTION,
+                dw.write(searched_tweets, config['MONGO_DB_NAME'], config['MONGO_DB_COLLECTION'],
                             filename=os.path.join(local_filestore,
                                                 term_to_filepath(term),
                                                 '{}.json'.format(DATE_STR)))
@@ -293,7 +301,7 @@ def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
             print('Rate limit reached, waiting 15 minutes')
             print('(until: {})'.format(datetime.datetime.now() + datetime.timedelta(minutes=15)))
             # t0 = time.time()
-            dw.write(searched_tweets, MONGO_DB_NAME, MONGO_DB_COLLECTION,
+            dw.write(searched_tweets, config['MONGO_DB_NAME'], config['MONGO_DB_COLLECTION'],
                         filename=os.path.join(local_filestore,
                                             term_to_filepath(term),
                                             '{}.json'.format(DATE_STR)))
@@ -336,7 +344,7 @@ def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
             elif action == 'break':
                 break
 
-    dw.write(searched_tweets, MONGO_DB_NAME, MONGO_DB_COLLECTION,
+    dw.write(searched_tweets, config['MONGO_DB_NAME'], config['MONGO_DB_COLLECTION'],
                 filename=os.path.join(local_filestore,
                                     term_to_filepath(term),
                                     '{}.json'.format(DATE_STR)))
@@ -344,59 +352,57 @@ def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
     return api, searched_tweets, found_ids, next_since_id
 
 
-@click.command()
-@click.option(
-    '--search-method',
-    default='ticker',
-    help="Specify search method.\n$btc -> ticker\n#btc -> hashtag\nbtc -> ''"
-)
-@click.option(
-    '--search-terms-file',
-    help=('File containing terms to search for. In CSV format. Please pass '
-        'search-term-col argument with column name.')
-)
-@click.option(
-    '--search-terms-col',
-    default='symbol',
-    help='Search terms column name in search-terms-file.'
-)
-@click.option(
-    '--filter-method',
-    default='',
-    help=('Method to use for filtering tweets. '
-          "Default is none (''), other options are: 'crypto'.")
-)
-@click.option(
-    '--num-iterations',
-    default=2,
-    help=('Iterate this many times over the full term list. The '
-          'idea here is to find tweets that were missed due to '
-          'incompleteness of twitter search API.')
-)
-@click.option(
-    '--testing-mode',
-    is_flag=True,
-    help=('Used when testing / developing. Scrapes less tweets.')
-)
-@click.option(
-    '--flush-db',
-    is_flag=True,
-    help='Drop the mongodb database.'
-)
 def twitter_search(search_method,
          search_terms_file, search_terms_col,
          filter_method, num_iterations,
          testing_mode, flush_db):
+    """
+    Search from yesterday at midnight UTC time, up until the previous ID
+    (in latest_tweet_id.txt) is reached. It iterated backwards and updates
+    max_id to find new tweets.
 
-    print_args([search_method,
+    search_method : str
+        Specify search method.
+        $btc -> ticker
+        #btc -> hashtag
+        btc -> ''
+
+    search_terms_file : str
+        File containing terms to search for. In CSV format.
+        Please pass search-term-col argument with column name.
+        Note that your input search_terms_file path will be
+        relative to the global data_path.
+
+    search_terms_col : str
+        Search terms column name in search_terms_file.
+
+    filter_method : str
+        Method to use for filtering tweets.
+        For no filtering use none (''), other options are:
+        - crypto
+
+    num_iterations : int
+        Iterate this many times over the full term list. The
+        idea here is to find tweets that were missed due to
+        incompleteness of twitter search API.
+
+    testing_mode : bool
+        Used when testing / developing. Scrapes less tweets.
+
+    flush_db : bool
+        Drop the mongodb database.
+    """
+    args = [config, search_method,
          search_terms_file, search_terms_col,
          filter_method, num_iterations,
-         testing_mode, flush_db],
-               [i.strip() for i in
-               ('search_method,'
-                'search_terms_file, search_terms_col,'
-                'filter_method, num_iterations,'
-                'testing_mode, flush_db').split(',')])
+         testing_mode, flush_db]
+    arg_names = [i.strip() for i in """
+                config, search_method,
+                search_terms_file, search_terms_col,
+                filter_method, num_iterations,
+                testing_mode, flush_db
+                """.split(',')]
+    print_args(args, arg_names)
 
     start_time = time.time()
 
@@ -407,8 +413,8 @@ def twitter_search(search_method,
 
     if flush_db:
         # Connect to database
-        dw = DataWriter(MONGO_DB_HOST, MONGO_DB_PORT)
-        dw.flush(MONGO_DB_NAME)
+        dw = DataWriter(config['MONGO_DB_HOST'], config['MONGO_DB_PORT'])
+        dw.flush(config['MONGO_DB_NAME'])
         print('Database flushed. Stopping script.')
         return
 
@@ -426,8 +432,8 @@ def twitter_search(search_method,
     since_ids = {}
     for i_iter, _ in enumerate(range(num_iterations)):
         # Connect to database
-        dw = DataWriter(MONGO_DB_HOST, MONGO_DB_PORT)
-        len_0 = dw.get_collection_len(MONGO_DB_NAME, MONGO_DB_COLLECTION)
+        dw = DataWriter(config['MONGO_DB_HOST'], config['MONGO_DB_PORT'])
+        len_0 = dw.get_collection_len(config['MONGO_DB_NAME'], config['MONGO_DB_COLLECTION'])
 
         for term in tqdm(search_terms):
             print('Term = {}'.format(term))
@@ -464,7 +470,7 @@ def twitter_search(search_method,
                              found_ids=found_ids[term],
                              since_id=since_id,
                              until_date=until_date,
-                             local_filestore=JSON_FILE_PATH,
+                             local_filestore=os.path.join(config['DATA_PATH'], 'tweets'),
                              dw=dw,
                              testing_mode=testing_mode)
 
@@ -474,7 +480,7 @@ def twitter_search(search_method,
         print('Finished iteration = {}/{}'.format(i_iter + 1, num_iterations))
 
         # Get number of new tweets found, and write to file
-        num_new_documents = dw.get_collection_len(MONGO_DB_NAME, MONGO_DB_COLLECTION) - len_0
+        num_new_documents = dw.get_collection_len(config['MONGO_DB_NAME'], config['MONGO_DB_COLLECTION']) - len_0
         print('Saved {} new tweets'.format(num_new_documents))
         if not os.path.exists('num_iterations_report.log'):
             with open('num_iterations_report.log', 'w') as f:
@@ -500,10 +506,12 @@ def print_args(args, arg_names):
 
 
 if __name__ == '__main__':
-    twitter_search()
+    args = load_config(var_type='args', script=SCRIPT_NAME)
+    twitter_search(**args)
+
 
 """
-ai.tagdata.co                                                          
+tagdata.co                                                             
  _________   ________       _______        ________       ________     
 /________/\ /_______/\     /______/\      /_______/\     /_______/\    
 \__.::.__\/ \::: _  \ \    \::::__\/__    \::: _  \ \    \__.::._\/    

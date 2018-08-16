@@ -1,0 +1,37 @@
+{
+    "_info": "Project configuration variables. Relative paths should start from script locations (not this file).",
+    "global": {
+        "data_path": "../../data",
+        "mongo_db_host": "127.0.0.1",
+        "mongo_db_port": 27017
+    },
+    "twitter": {
+        "search_method": "ticker",
+        "filter_method": "crypto",
+        "search_terms_file": "coin-twitter-list/coin_twitter_list.csv",
+        "search_terms_col": "symbol",
+        "num_iterations": 2,
+        "testing_mode": false,
+        "flush_db": false,
+        "global": {
+            "api_key_file": "../../twitter-account/api_token.json",
+            "mongo_db_name": "twitter",
+            "mongo_db_collection": "crypto"
+        }
+    },
+    "twitter_coin_list_update": {
+        "output_search_terms_file": "coin-twitter-list/coin_twitter_list.csv",
+        "global": {
+            "num_top_coins": 500
+        }
+    },
+    "cryptocompare": {},
+    "rich_list": {
+        "global": {
+            "chrome_driver_path": "../../webdrivers/chromedriver"
+        }
+    },
+    "rich_list_coin_map_update": {
+        "global": {}
+    }
+}
