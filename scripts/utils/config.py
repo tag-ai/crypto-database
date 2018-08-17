@@ -1,6 +1,6 @@
 import os
 import json
-CONFIG_FILE = '../../config.json'
+CONFIG_FILE = '../config.json'
 
 def load_config(var_type, script):
     """

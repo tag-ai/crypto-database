@@ -25,7 +25,12 @@
             "num_top_coins": 500
         }
     },
-    "cryptocompare": {},
+    "cryptocompare": {
+        "global": {
+            "json_filename": "tweets/outfile.json",
+            "mongo_db_name": "cryptocompare"
+        }
+    },
     "rich_list": {
         "global": {
             "chrome_driver_path": "../../webdrivers/chromedriver"
