@@ -1,4 +1,4 @@
 # Run daily
-cmd="python update_twitter_search_coin_list.py"
+cmd="python coin_list_update.py"
 echo $cmd
 eval $cmd

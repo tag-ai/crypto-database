@@ -1,4 +1,4 @@
 # Run daily
-cmd="python twitter_search.py --search-method=ticker --filter-method=crypto --search-terms-file=../../data/coin-twitter-list/coin-master-list.csv --search-terms-col=symbol"
+cmd="python twitter_search.py"
 echo $cmd
 eval $cmd

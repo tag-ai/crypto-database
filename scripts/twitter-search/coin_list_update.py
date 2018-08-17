@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 import os
 import time
 import datetime
+import sys
 sys.path.append('../utils')
 from config import load_config
 SCRIPT_NAME = 'twitter_coin_list_update'
@@ -29,8 +30,7 @@ config['DATA_PATH'] = absolute_path(config['DATA_PATH'])
 
 def update_filestore(df, output_search_terms_file):
     # Configure local filestore
-    base_path = os.path.join(config['DATA_PATH'],
-                             os.path.split(output_search_terms_file)[0])
+    base_path = os.path.split(output_search_terms_file)[0]
     if not os.path.exists(base_path):
         os.makedirs(base_path)
 
@@ -102,4 +102,5 @@ def update_coin_master_list(output_search_terms_file):
 
 if __name__ == '__main__':
     args = load_config(var_type='args', script=SCRIPT_NAME)
+    args['output_search_terms_file'] = os.path.join(config['DATA_PATH'], args['output_search_terms_file'])
     update_coin_master_list(**args)

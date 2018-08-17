@@ -191,7 +191,7 @@ def log_errors(e, errors, max_errors,
                     '<br><br><b>Date</b> = {}'
                     '<br><br><b>Error:</b> <br>{}'
                     '<br><br><b>Vars:</b> <br>{}'.format(datetime.datetime.now(), e, '<br>'.join(msg))),
-               destination_emails=['tagdata.ai@gmail.com'])
+               destination_emails=['tag.ai.tech@gmail.com'])
 
     # Break the loop if too many errors - to avoid infinite loops
     errors += 1
@@ -409,7 +409,7 @@ def twitter_search(search_method,
     if testing_mode:
         send_email('Hi there!',
                    'Running script in testing mode at {}'.format(datetime.datetime.now()),
-                   ['tagdata.ai@gmail.com'])
+                   ['tag.ai.tech@gmail.com'])
 
     if flush_db:
         # Connect to database
