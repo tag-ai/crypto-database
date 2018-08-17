@@ -33,6 +33,9 @@
     },
     "rich_list": {
         "global": {
+            "_info": "If running in headless mode, pass headless = true and driver = Firefox. Driver path will be ignored.",
+            "headless": false,
+            "driver": "",
             "chrome_driver_path": "../../webdrivers/chromedriver"
         }
     },
