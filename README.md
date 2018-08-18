@@ -61,7 +61,7 @@ crontab -e
 # (make sure to edit the path appropriately & leave at least one line of white space after final command)
 
 45 9 * * 0 /path/to/scripts/twitter-search/cmd_weekly_coin_list.sh > /path/to/scripts/twitter-search/cron.weekly_coin_list.log 2>&1
-0 10 * * * /path/to/scripts/twitter-search/cmd_daily_twitter_search > /path/to/scripts/twitter-search/cron.daily_twitter_search.log 2>&1
+0 10 * * * /path/to/scripts/twitter-search/cmd_daily_twitter_search.sh > /path/to/scripts/twitter-search/cron.daily_twitter_search.log 2>&1
 
 45 10 * * 0 /path/to/scripts/rich-lists/cmd_weekly_coin_map.sh > /path/to/scripts/rich-lists/cron.weekly_coin_map.log 2>&1
 0 11 * * * /path/to/scripts/rich-lists/cmd_daily_cryptoid.sh > /path/to/scripts/rich-lists/cron.daily_cryptoid.log 2>&1
@@ -93,7 +93,8 @@ mongod --dbpath=/path/to/database
 conda activate crypto_database
 
 # Run the script
-cd /path/to/scripts/twitter-search && ./cmd.sh
+cd /path/to/scripts/twitter-search && ./cmd_weekly_coin_list.sh
+cd /path/to/scripts/twitter-search && ./cmd_daily_twitter_search.sh
 
 # Exit the virtual env
 source deactivate
