@@ -15,6 +15,9 @@
 
 ## Dependencies & project config.
 ```
+# Install Anaconda python
+# https://www.anaconda.com/download/
+
 # Install mongodb on mac
 brew install mongodb
 
