@@ -121,6 +121,13 @@ A rich list is an array of the top addresses, for a given coin, and their holdin
 # Load the conda virtual env
 conda activate crypto_database
 
+# If running headless mode, start browser
+./start_headless_firefox_browser.sh
+# OR start manually (see below)
+screen
+firefox --headless
+# ctrl+d+a (to detach)
+
 # Get the available coins for each data source
 cd /path/to/scripts/rich-lists && ./cmd_weekly_coin_map.sh
 
