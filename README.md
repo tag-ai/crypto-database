@@ -11,20 +11,31 @@
   </body>
 </table>    
 
-*Only compatible with python 3*
-
 ## Dependencies & project config.
 ```
-# Install Anaconda python
+# Install Anaconda python 3+
 # https://www.anaconda.com/download/
+# Python 2 not supported
 
 # Install mongodb on mac
 brew install mongodb
 
-# Install mongodb on ubuntu (18.04)
+# Install mongodb on ubuntu server (18.04)
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt install -y mongodb
+
+# Install firefox on ubuntu server (18.04)
+sudo apt-add-repository ppa:mozillateam/firefox-next
+sudo apt-get update
+sudo apt-get install firefox
+# Go to the geckodriver releases page (https://github.com/mozilla/geckodriver/releases).
+# Find the latest version of the driver for your platform and download it.
+# e.g.
+wget https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz
+tar -xvzf geckodriver*
+chmod +x geckodriver
+sudo mv geckodriver /usr/local/bin/
 
 # Create conda env
 conda create --name crypto_database python=3.6
@@ -60,11 +71,12 @@ crontab -e
 # Paste the following lines
 # (make sure to edit the path appropriately & leave at least one line of white space after final command)
 
-0 10 * * * /path/to/scripts/twitter-search/cmd.sh > /path/to/scripts/twitter-search/cron.log 2>&1
+45 9 * * 0 /path/to/scripts/twitter-search/cmd_weekly_coin_list.sh > /path/to/scripts/twitter-search/cron.weekly_coin_list.log 2>&1
+0 10 * * * /path/to/scripts/twitter-search/cmd_daily_twitter_search.sh > /path/to/scripts/twitter-search/cron.daily_twitter_search.log 2>&1
 
-45 10 * * 0 /path/to/scripts/rich-lists/cmd_weekly_coin_map.sh > /path/to/scripts/rich-lists/cron.log 2>&1
-0 11 * * * /path/to/scripts/rich-lists/cmd_daily_cryptoid.sh > /path/to/scripts/rich-lists/cron.log 2>&1
-0 11 * * * /path/to/scripts/rich-lists/cmd_daily_etherscan.sh > /path/to/scripts/rich-lists/cron.log 2>&1
+45 10 * * 0 /path/to/scripts/rich-lists/cmd_weekly_coin_map.sh > /path/to/scripts/rich-lists/cron.weekly_coin_map.log 2>&1
+0 11 * * * /path/to/scripts/rich-lists/cmd_daily_cryptoid.sh > /path/to/scripts/rich-lists/cron.daily_cryptoid.log 2>&1
+0 11 * * * /path/to/scripts/rich-lists/cmd_daily_etherscan.sh > /path/to/scripts/rich-lists/cron.daily_etherscan.log 2>&1
 
 0 12 * * * /path/to/scripts/cryptocompare/cmd.sh > /path/to/scripts/cryptocompare/cron.log 2>&1
 ```
@@ -92,7 +104,8 @@ mongod --dbpath=/path/to/database
 conda activate crypto_database
 
 # Run the script
-cd /path/to/scripts/twitter-search && ./cmd.sh
+cd /path/to/scripts/twitter-search && ./cmd_weekly_coin_list.sh
+cd /path/to/scripts/twitter-search && ./cmd_daily_twitter_search.sh
 
 # Exit the virtual env
 source deactivate
@@ -118,6 +131,13 @@ A rich list is an array of the top addresses, for a given coin, and their holdin
 ```
 # Load the conda virtual env
 conda activate crypto_database
+
+# If running headless mode, start browser
+./start_headless_firefox_browser.sh
+# OR start manually (see below)
+screen
+firefox --headless
+# ctrl+d+a (to detach)
 
 # Get the available coins for each data source
 cd /path/to/scripts/rich-lists && ./cmd_weekly_coin_map.sh
