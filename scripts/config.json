@@ -1,7 +1,7 @@
 {
     "_info": "Project configuration variables. Relative paths should start from script locations (not this file).",
     "global": {
-        "data_path": "../../data",
+        "data_path": "/mnt/hdd-1/CryptoData",
         "mongo_db_host": "127.0.0.1",
         "mongo_db_port": 27017
     },
@@ -33,9 +33,9 @@
     },
     "rich_list": {
         "global": {
-            "_info": "If running in headless mode, pass headless = true and driver = Firefox. Driver path will be ignored.",
+            "_info": "If running in headless mode, pass headless = true and driver = firefox. Driver path will be ignored. Otherwise chrome_driver_path will be ignored.",
             "headless": false,
-            "driver": "",
+            "driver": "firefox",
             "chrome_driver_path": "../../webdrivers/chromedriver"
         }
     },

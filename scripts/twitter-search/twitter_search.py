@@ -27,6 +27,7 @@ sys.path.append('../utils')
 from data_writer import DataWriter
 from emailer import send_email
 from config import load_config
+from err import log_errors
 SCRIPT_NAME = 'twitter'
 DATE = datetime.datetime.utcnow()
 DATE_STR = DATE.strftime('%Y-%m-%d')
@@ -157,50 +158,6 @@ def check_rate_limit(api):
     return (reset_time - datetime.datetime.now()).seconds
 
 
-def log_errors(e, errors, max_errors,
-               api, term, query, until_date, since_id,
-               save_freq, local_filestore, num_iterations,
-               testing_mode):
-    """
-    Log errors to file errors.log and prints them to screen.
-    If called more 5 times, return break status for out of scope loop.
-    """
-    # Write to file
-    with open(os.path.join(DIR_PATH, 'errors.log'), 'a+') as f:
-        f.write('Exception raised in tweet_search.\n')
-        f.write('Dumping vars:\n')
-        for name, var in zip('api, query, until_date, since_id, save_freq, local_filestore, num_iterations'.split(', '),
-                            [api, query, until_date, since_id, save_freq, local_filestore, num_iterations]):
-            f.write('{} = {}\n'.format(name, var))
-        f.write('Dumping error:\n')
-        f.write('{}\n'.format(e))
-        f.write('-' * 25 + '\n')
-
-    # Write to stdout
-    print('Exception raised in tweet_search')
-    msg = []
-    for name, var in zip('api, query, until_date, since_id, save_freq, local_filestore, num_iterations'.split(', '),
-                        [api, query, until_date, since_id, save_freq, local_filestore, num_iterations]):
-        msg.append('{}={}'.format(name, var))
-    print('\n'.join(msg))
-    print(e)
-
-    # Send email
-    send_email(subject='Exception raised in twitter_search.py',
-               msg=('Exception raised in tweet_search function of twitter_search.py. '
-                    '<br><br><b>Date</b> = {}'
-                    '<br><br><b>Error:</b> <br>{}'
-                    '<br><br><b>Vars:</b> <br>{}'.format(datetime.datetime.now(), e, '<br>'.join(msg))),
-               destination_emails=['tag.ai.tech@gmail.com'])
-
-    # Break the loop if too many errors - to avoid infinite loops
-    errors += 1
-    if errors > max_errors:
-        return 'break', errors
-
-    return 'continue', errors
-
-
 def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
                  save_freq=1500, dw=None, local_filestore='', num_iterations=3,
                  testing_mode=False):
@@ -325,24 +282,36 @@ def tweet_search(api, term, query, found_ids, until_date='', since_id=0,
                 print('Waiting for a few seconds ...')
                 time.sleep(3)
             else:
-                action, errors = log_errors(e, errors, max_errors,
-                                            api, term, query, until_date, since_id,
-                                            save_freq, local_filestore, num_iterations,
-                                            testing_mode)
-                if action == 'continue':
-                    continue
-                elif action == 'break':
+                log_errors(e,
+                        func_name='tweet_search',
+                        script_name=os.path.split(__file__)[-1],
+                        dir_path=DIR_PATH,
+                        args=[api, term, query, until_date, since_id,
+                              save_freq, local_filestore, num_iterations],
+                        arg_names=('api, term, query, until_date, since_id, '
+                                   'save_freq, local_filestore, num_iterations'))
+                # Break the loop if too many errors - to avoid infinite loops
+                errors += 1
+                if errors > max_errors:
                     break
+                else:
+                    continue
 
         except Exception as e:
-            action, errors = log_errors(e, errors, max_errors,
-                                        api, term, query, until_date, since_id,
-                                        save_freq, local_filestore, num_iterations,
-                                        testing_mode)
-            if action == 'continue':
-                continue
-            elif action == 'break':
+            log_errors(e,
+                    func_name='tweet_search',
+                    script_name=os.path.split(__file__)[-1],
+                    dir_path=DIR_PATH,
+                    args=[api, term, query, until_date, since_id,
+                            save_freq, local_filestore, num_iterations],
+                    arg_names=('api, term, query, until_date, since_id, '
+                                'save_freq, local_filestore, num_iterations'))
+            # Break the loop if too many errors - to avoid infinite loops
+            errors += 1
+            if errors > max_errors:
                 break
+            else:
+                continue
 
     dw.write(searched_tweets, config['MONGO_DB_NAME'], config['MONGO_DB_COLLECTION'],
                 filename=os.path.join(local_filestore,
