@@ -11,12 +11,11 @@
   </body>
 </table>    
 
-*Only compatible with python 3*
-
 ## Dependencies & project config.
 ```
-# Install Anaconda python
+# Install Anaconda python 3+
 # https://www.anaconda.com/download/
+# Python 2 not supported
 
 # Install mongodb on mac
 brew install mongodb
