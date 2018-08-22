@@ -35,6 +35,7 @@ sudo apt-get install firefox
 wget https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz
 tar -xvzf geckodriver*
 chmod +x geckodriver
+sudo cp geckodriver /usr/bin/
 sudo mv geckodriver /usr/local/bin/
 
 # Create conda env
