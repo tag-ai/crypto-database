@@ -63,6 +63,10 @@ mkdir -p data/CryptoData/mongodb_data
 # e.g. cmd="/home/alex/anaconda3/envs/crypto_database/bin/python twitter_search.py"
 # in scripts/twitter-search. Do this for
 # cmd*.sh files in other scripts folders also
+
+# Add credentials for send email account
+vim scripts/utils/email_credentials.txt
+# Replace with your credentials
 ```
 
 ## Setting up cron jobs
