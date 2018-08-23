@@ -35,6 +35,7 @@ sudo apt-get install firefox
 wget https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz
 tar -xvzf geckodriver*
 chmod +x geckodriver
+sudo cp geckodriver /usr/bin/
 sudo mv geckodriver /usr/local/bin/
 
 # Create conda env
@@ -62,6 +63,10 @@ mkdir -p data/CryptoData/mongodb_data
 # e.g. cmd="/home/alex/anaconda3/envs/crypto_database/bin/python twitter_search.py"
 # in scripts/twitter-search. Do this for
 # cmd*.sh files in other scripts folders also
+
+# Add credentials for send email account
+vim scripts/utils/email_credentials.txt
+# Replace with your credentials
 ```
 
 ## Setting up cron jobs
