@@ -21,14 +21,14 @@
 brew install mongodb
 
 # Install mongodb on ubuntu server (18.04)
-sudo apt-get update
-sudo apt-get upgrade
+sudo apt update
+sudo apt upgrade
 sudo apt install -y mongodb
 
 # Install firefox on ubuntu server (18.04)
 sudo apt-add-repository ppa:mozillateam/firefox-next
-sudo apt-get update
-sudo apt-get install firefox
+sudo apt update
+sudo apt install firefox
 # Go to the geckodriver releases page (https://github.com/mozilla/geckodriver/releases).
 # Find the latest version of the driver for your platform and download it.
 # e.g.
@@ -42,7 +42,7 @@ sudo mv geckodriver /usr/local/bin/
 conda create --name crypto_database python=3.6
 
 # Clone repo
-git clone https://github.com/tag-ai/crypto-database.git
+git clone https://github.com/tagto/crypto-database.git
 cd crypto-database
 
 # Install the python libraries
@@ -65,8 +65,10 @@ mkdir -p data/CryptoData/mongodb_data
 # cmd*.sh files in other scripts folders also
 
 # Add credentials for send email account
+# and twitter search API
+# (replace with your credentials)
 vim scripts/utils/email_credentials.txt
-# Replace with your credentials
+vim twitter-account/api_token.json
 ```
 
 ## Setting up cron jobs
